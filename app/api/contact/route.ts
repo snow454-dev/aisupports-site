@@ -61,3 +61,4 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "サーバーエラーが発生しました。" }, { status: 500 });
   }
 }
+
