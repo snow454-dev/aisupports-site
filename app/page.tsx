@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useEffect, useRef, useState, useCallback, FormEvent, DragEvent } from "react";
+import { useEffect, useRef, useState, useCallback, FormEvent } from "react";
 
 /* ══════════════════════════════════════════════════════════════
    Custom Cursor
@@ -191,31 +191,14 @@ function WorkflowSVG() {
    ══════════════════════════════════════════════════════════════ */
 type FormStatus = "idle" | "sending" | "success" | "error";
 
-const FILE_SIZE_LIMIT = 10 * 1024 * 1024; // 10MB
-
 function ContactForm() {
-  const [status, setStatus]         = useState<FormStatus>("idle");
-  const [file,   setFile]           = useState<File | null>(null);
-  const [dragging, setDragging]     = useState(false);
-  const [errorMsg, setErrorMsg]     = useState<string>("送信に失敗しました。時間をおいて再度お試しください。");
-  const [agreed, setAgreed]         = useState(false);
+  const [status, setStatus]                   = useState<FormStatus>("idle");
+  const [errorMsg, setErrorMsg]               = useState<string>("送信に失敗しました。時間をおいて再度お試しください。");
+  const [agreed, setAgreed]                   = useState(false);
   const [submitAttempted, setSubmitAttempted] = useState(false);
   const formRef = useRef<HTMLFormElement>(null);
 
-  const handleFile = (f: File | null | undefined) => {
-    if (!f) return;
-    if (f.size > FILE_SIZE_LIMIT) {
-      setErrorMsg(`ファイルサイズが大きすぎます（上限 10MB）。現在: ${(f.size / 1024 / 1024).toFixed(1)} MB`);
-      setStatus("error");
-      return;
-    }
-    setFile(f);
-    if (status === "error") { setStatus("idle"); }
-  };
-  const onDrop = (e: DragEvent<HTMLDivElement>) => {
-    e.preventDefault(); setDragging(false); handleFile(e.dataTransfer.files?.[0]);
-  };
-const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setSubmitAttempted(true);
     if (!agreed) return;
@@ -254,7 +237,7 @@ const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
       setStatus("error");
     }
   };
-   
+
   if (status === "success") {
     return (
       <div className="form-success">
@@ -288,39 +271,18 @@ const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
       </div>
       <div className="form-field">
         <label className="form-label">
-          ファイル添付
-          <span className="form-label-note">（任意 — 課題のExcel・業務フロー図・データなど）</span>
+          ファイル共有URL
+          <span className="form-label-note">（任意 — Google DriveやDropboxのリンク）</span>
         </label>
-        <div
-          className={`drop-zone${dragging ? " drag-over" : ""}${file ? " has-file" : ""}`}
-          onDragOver={(e) => { e.preventDefault(); setDragging(true); }}
-          onDragLeave={() => setDragging(false)}
-          onDrop={onDrop}
-          onClick={() => document.getElementById("file-input")?.click()}
-        >
-          <input id="file-input" type="file" style={{ display: "none" }}
-            accept=".xlsx,.xls,.csv,.pdf,.docx,.doc,.png,.jpg,.jpeg,.zip"
-            onChange={(e) => handleFile(e.target.files?.[0])} />
-          {file ? (
-            <div className="drop-zone-file">
-              <span className="dz-icon">📎</span>
-              <div>
-                <div className="dz-filename">{file.name}</div>
-                <div className="dz-size">{(file.size / 1024).toFixed(0)} KB</div>
-              </div>
-              <button type="button" className="dz-remove"
-                onClick={(e) => { e.stopPropagation(); setFile(null); }}>✕</button>
-            </div>
-          ) : (
-            <div className="drop-zone-idle">
-              <span className="dz-icon">📂</span>
-              <div>
-                <div className="dz-main">ファイルをドラッグ＆ドロップ、またはクリックして選択</div>
-                <div className="dz-sub">Excel・CSV・PDF・画像など。添付いただければ、より具体的な見積もりと実行提案書を即座に作成します。</div>
-              </div>
-            </div>
-          )}
-        </div>
+        <input
+          className="form-input"
+          name="fileUrl"
+          type="url"
+          placeholder="https://drive.google.com/..."
+        />
+        <p className="form-note" style={{ marginTop: 6 }}>
+          ※ Google Driveの場合は「リンクを知っている全員が閲覧可能」に設定してからURLを貼り付けてください。
+        </p>
       </div>
       {/* プライバシーポリシー同意 */}
       <div className="privacy-agree-wrap">
@@ -341,14 +303,13 @@ const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
       {submitAttempted && !agreed && (
         <p className="privacy-agree-error">プライバシーポリシーへの同意が必要です</p>
       )}
-
       {status === "error" && <div className="form-error">{errorMsg}</div>}
       <button type="submit"
         className={`btn btn-primary form-submit${status === "sending" ? " sending" : ""}${!agreed ? " form-submit-disabled" : ""}`}
         disabled={status === "sending"}>
         {status === "sending" ? <><span className="spinner"/>送信中…</> : "相談・見積もり依頼を送る →"}
       </button>
-      <p className="form-note">ファイルを送っていただければ、現状分析と改善提案書を無料でお送りします。</p>
+      <p className="form-note">課題のデータをGoogle Driveで共有いただければ、現状分析と改善提案書を無料でお送りします。</p>
     </form>
   );
 }
@@ -359,163 +320,118 @@ const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
 const SKIN = "#FFD5A8";
 const HAIR = "#1A1A2E";
 
-// 1. 自動見積もり生成 — blue male with tablet, docs flying
 function IllustQuotation() {
   return (
     <svg viewBox="0 0 200 150" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-      {/* Chair */}
       <rect x="78" y="112" width="44" height="6" rx="3" fill="#C8D8E8"/>
       <rect x="88" y="118" width="6" height="16" rx="2" fill="#B0C4D8"/>
       <rect x="106" y="118" width="6" height="16" rx="2" fill="#B0C4D8"/>
-      {/* Body */}
       <rect x="82" y="72" width="36" height="42" rx="8" fill="#4A90D9"/>
-      {/* Head */}
       <ellipse cx="100" cy="60" rx="18" ry="20" fill={SKIN}/>
-      {/* Hair */}
       <ellipse cx="100" cy="44" rx="18" ry="12" fill={HAIR}/>
       <rect x="82" y="44" width="7" height="18" rx="3" fill={HAIR}/>
-      {/* Tablet */}
       <rect x="104" y="82" width="26" height="20" rx="3" fill="#E8F4FD"/>
       <rect x="106" y="84" width="22" height="14" rx="2" fill="#3B9EE8"/>
       <rect x="108" y="86" width="10" height="2" rx="1" fill="rgba(255,255,255,0.8)"/>
       <rect x="108" y="90" width="14" height="2" rx="1" fill="rgba(255,255,255,0.6)"/>
-      {/* Arm */}
       <rect x="96" y="88" width="12" height="8" rx="4" fill={SKIN}/>
-      {/* Flying docs */}
       <rect x="138" y="48" width="22" height="28" rx="3" fill="#FFF8E7" transform="rotate(12 138 48)"/>
       <rect x="140" y="54" width="14" height="2" rx="1" fill="#F5C842" transform="rotate(12 140 54)"/>
       <rect x="140" y="58" width="10" height="2" rx="1" fill="#E0D8CC" transform="rotate(12 140 58)"/>
       <rect x="125" y="35" width="18" height="22" rx="3" fill="#E8F4FD" transform="rotate(-8 125 35)"/>
       <rect x="127" y="40" width="11" height="2" rx="1" fill="#3B9EE8" transform="rotate(-8 127 40)"/>
       <rect x="127" y="44" width="8" height="2" rx="1" fill="#C8D8E8" transform="rotate(-8 127 44)"/>
-      {/* Check mark */}
       <circle cx="152" cy="85" r="9" fill="#6DD44A"/>
       <polyline points="147,85 151,89 157,82" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
     </svg>
   );
 }
 
-// 2. 欠品処理・タイマー自動化 — coral female running, boxes + clock
 function IllustStockout() {
   return (
     <svg viewBox="0 0 200 150" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-      {/* Shadow */}
       <ellipse cx="95" cy="138" rx="28" ry="5" fill="rgba(0,0,0,0.06)"/>
-      {/* Legs */}
       <rect x="72" y="100" width="16" height="38" rx="8" fill="#2ECC71" transform="rotate(-15 72 100)"/>
       <rect x="90" y="98" width="16" height="38" rx="8" fill="#2ECC71" transform="rotate(10 90 98)"/>
-      {/* Shoes */}
       <ellipse cx="64" cy="136" rx="10" ry="6" fill={HAIR}/>
       <ellipse cx="104" cy="132" rx="10" ry="6" fill={HAIR}/>
-      {/* Body */}
       <rect x="68" y="62" width="38" height="42" rx="10" fill="#FF6B6B"/>
-      {/* Head */}
       <ellipse cx="87" cy="50" rx="18" ry="20" fill={SKIN}/>
-      {/* Hair */}
       <ellipse cx="87" cy="34" rx="18" ry="12" fill={HAIR}/>
       <ellipse cx="78" cy="46" rx="5" ry="12" fill={HAIR}/>
-      {/* Arms */}
       <rect x="50" y="68" width="24" height="12" rx="6" fill="#FF6B6B" transform="rotate(20 50 68)"/>
       <rect x="94" y="64" width="24" height="12" rx="6" fill="#FF6B6B" transform="rotate(-25 94 64)"/>
-      {/* Box */}
       <rect x="30" y="60" width="28" height="28" rx="4" fill="#FFF3D0"/>
       <rect x="30" y="60" width="28" height="10" rx="4" fill="#F5C842"/>
       <rect x="42" y="60" width="4" height="28" fill="rgba(245,200,66,0.5)"/>
-      {/* Clock */}
       <circle cx="158" cy="65" r="22" fill="#E8F4FD"/>
       <circle cx="158" cy="65" r="18" fill="white"/>
       <line x1="158" y1="65" x2="158" y2="51" stroke="#3B9EE8" strokeWidth="2.5" strokeLinecap="round"/>
       <line x1="158" y1="65" x2="168" y2="70" stroke="#FF6B6B" strokeWidth="2.5" strokeLinecap="round"/>
       <circle cx="158" cy="65" r="3" fill="#1A1A2E"/>
-      {/* Auto label */}
       <rect x="140" y="92" width="36" height="14" rx="7" fill="#6DD44A"/>
       <text x="158" y="103" textAnchor="middle" fontSize="7" fill="white" fontWeight="700" fontFamily="system-ui">AUTO</text>
     </svg>
   );
 }
 
-// 3. 自動シフト管理 — purple male arms crossed, calendar
 function IllustShift() {
   return (
     <svg viewBox="0 0 200 150" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-      {/* Calendar */}
       <rect x="106" y="28" width="72" height="80" rx="8" fill="white" stroke="#F0EBE0" strokeWidth="1.5"/>
       <rect x="106" y="28" width="72" height="20" rx="8" fill="#3B9EE8"/>
       <rect x="106" y="40" width="72" height="8" fill="#3B9EE8"/>
-      {/* Calendar circles */}
       {[0,1,2,3,4,5].map(i => (
         <circle key={i} cx={118 + (i % 3) * 20} cy={72 + Math.floor(i/3) * 22} r="7"
           fill={i === 1 || i === 4 ? "#6DD44A" : i === 2 ? "#FF6B6B" : "#E8F4FD"}/>
       ))}
-      {/* Legs */}
       <rect x="56" y="104" width="16" height="38" rx="8" fill="#2C3E50"/>
       <rect x="74" y="104" width="16" height="38" rx="8" fill="#2C3E50"/>
-      {/* Body */}
       <rect x="50" y="64" width="48" height="44" rx="10" fill="#8E44AD"/>
-      {/* Arms crossed */}
       <rect x="28" y="76" width="28" height="12" rx="6" fill="#8E44AD" transform="rotate(-10 28 76)"/>
       <rect x="90" y="72" width="28" height="12" rx="6" fill="#8E44AD" transform="rotate(10 90 72)"/>
-      {/* Head */}
       <ellipse cx="74" cy="52" rx="18" ry="20" fill={SKIN}/>
-      {/* Hair */}
       <rect x="56" y="36" width="36" height="20" rx="10" fill={HAIR}/>
       <text x="74" y="100" textAnchor="middle" fontSize="8" fill="rgba(255,255,255,0.6)" fontFamily="system-ui">✓ AUTO</text>
     </svg>
   );
 }
 
-// 4. 医療・売上予測 — white coat female with rising chart
 function IllustMedical() {
   return (
     <svg viewBox="0 0 200 150" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-      {/* Chart board */}
       <rect x="100" y="22" width="78" height="80" rx="8" fill="white" stroke="#F0EBE0" strokeWidth="1.5"/>
       <rect x="100" y="22" width="78" height="14" rx="8" fill="#3B9EE8"/>
       <rect x="100" y="28" width="78" height="8" fill="#3B9EE8"/>
-      {/* Chart line */}
       <polyline points="112,88 126,76 140,80 154,62 168,48" fill="none" stroke="#6DD44A" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"/>
       <circle cx="168" cy="48" r="5" fill="#6DD44A"/>
-      {/* Y axis */}
       <line x1="112" y1="44" x2="112" y2="92" stroke="#E0D8CC" strokeWidth="1.5"/>
       <line x1="112" y1="92" x2="172" y2="92" stroke="#E0D8CC" strokeWidth="1.5"/>
-      {/* Legs */}
       <rect x="52" y="106" width="14" height="36" rx="7" fill="#4A4A6A"/>
       <rect x="68" y="106" width="14" height="36" rx="7" fill="#4A4A6A"/>
-      {/* White coat */}
       <rect x="42" y="64" width="50" height="46" rx="10" fill="#F8F8F8"/>
       <rect x="62" y="64" width="10" height="20" fill="#3B9EE8"/>
-      {/* Arm holding chart */}
       <rect x="88" y="68" width="18" height="10" rx="5" fill="#F8F8F8"/>
-      {/* Head */}
       <ellipse cx="67" cy="52" rx="18" ry="20" fill={SKIN}/>
-      {/* Hair */}
       <ellipse cx="67" cy="36" rx="18" ry="12" fill={HAIR}/>
       <rect x="49" y="40" width="7" height="20" rx="3" fill={HAIR}/>
-      {/* Cross */}
       <rect x="58" y="69" width="4" height="12" rx="2" fill="#FF6B6B"/>
       <rect x="55" y="73" width="10" height="4" rx="2" fill="#FF6B6B"/>
     </svg>
   );
 }
 
-// 5. 定期レポート通知 — mustard male resting, notifications flying
 function IllustReport() {
   return (
     <svg viewBox="0 0 200 150" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-      {/* Couch / desk */}
       <rect x="30" y="106" width="100" height="12" rx="6" fill="#C8D8E8"/>
       <rect x="36" y="90" width="88" height="20" rx="8" fill="#E8F4FD"/>
-      {/* Body resting */}
       <rect x="42" y="72" width="52" height="22" rx="10" fill="#F39C12"/>
-      {/* Head resting */}
       <ellipse cx="68" cy="68" rx="18" ry="16" fill={SKIN}/>
-      {/* Hair */}
       <rect x="50" y="54" width="36" height="16" rx="8" fill={HAIR}/>
-      {/* ZZZ */}
       <text x="92" y="68" fontSize="13" fill="#8A8AAA" fontWeight="700" fontFamily="system-ui">z</text>
       <text x="104" y="58" fontSize="11" fill="#8A8AAA" fontWeight="700" fontFamily="system-ui">z</text>
       <text x="114" y="50" fontSize="9" fill="#8A8AAA" fontWeight="700" fontFamily="system-ui">z</text>
-      {/* Notifications flying */}
       <rect x="136" y="32" width="38" height="28" rx="8" fill="#3B9EE8"/>
       <text x="155" y="44" textAnchor="middle" fontSize="9" fill="white" fontFamily="system-ui">レポート</text>
       <text x="155" y="55" textAnchor="middle" fontSize="7.5" fill="rgba(255,255,255,0.85)" fontFamily="system-ui">✓ 送信完了</text>
@@ -523,21 +439,17 @@ function IllustReport() {
       <text x="170" y="32" textAnchor="middle" fontSize="9" fill="white" fontWeight="700" fontFamily="system-ui">!</text>
       <rect x="128" y="70" width="46" height="22" rx="8" fill="#6DD44A"/>
       <text x="151" y="85" textAnchor="middle" fontSize="8" fill="white" fontFamily="system-ui">Slack 通知済</text>
-      {/* Arm */}
       <rect x="40" y="82" width="14" height="28" rx="7" fill="#F39C12"/>
     </svg>
   );
 }
 
-// 6. ドキュメント自動生成 — lavender female, magic pose, docs flying
 function IllustDocGen() {
   return (
     <svg viewBox="0 0 200 150" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-      {/* Sparkles */}
       <circle cx="142" cy="38" r="5" fill="#F5C842" opacity="0.9"/>
       <circle cx="162" cy="28" r="3.5" fill="#F5C842" opacity="0.7"/>
       <circle cx="128" cy="28" r="4" fill="#F5C842" opacity="0.8"/>
-      {/* Flying documents */}
       <rect x="138" y="46" width="28" height="34" rx="4" fill="white" stroke="#F0EBE0" strokeWidth="1" transform="rotate(15 138 46)"/>
       <rect x="141" y="54" width="16" height="2.5" rx="1" fill="#3B9EE8" transform="rotate(15 141 54)"/>
       <rect x="141" y="59" width="12" height="2.5" rx="1" fill="#E0D8CC" transform="rotate(15 141 59)"/>
@@ -546,21 +458,14 @@ function IllustDocGen() {
       <rect x="121" y="49" width="10" height="2.5" rx="1" fill="#E0D8CC" transform="rotate(-10 121 49)"/>
       <rect x="154" y="72" width="22" height="26" rx="4" fill="white" stroke="#F0EBE0" strokeWidth="1" transform="rotate(8 154 72)"/>
       <rect x="157" y="79" width="12" height="2" rx="1" fill="#6DD44A" transform="rotate(8 157 79)"/>
-      {/* Legs */}
       <rect x="58" y="106" width="14" height="36" rx="7" fill="#27AE60"/>
       <rect x="74" y="106" width="14" height="36" rx="7" fill="#27AE60"/>
-      {/* Body */}
       <rect x="50" y="66" width="48" height="44" rx="10" fill="#9B59B6"/>
-      {/* Magic arm raised */}
       <rect x="94" y="52" width="12" height="28" rx="6" fill="#9B59B6" transform="rotate(-40 94 52)"/>
-      {/* Left arm */}
       <rect x="34" y="72" width="20" height="10" rx="5" fill="#9B59B6" transform="rotate(15 34 72)"/>
-      {/* Head */}
       <ellipse cx="74" cy="54" rx="18" ry="20" fill={SKIN}/>
-      {/* Hair */}
       <ellipse cx="74" cy="38" rx="18" ry="12" fill={HAIR}/>
       <ellipse cx="64" cy="50" rx="5" ry="14" fill={HAIR}/>
-      {/* Wand */}
       <line x1="110" y1="44" x2="122" y2="32" stroke="#F5C842" strokeWidth="3" strokeLinecap="round"/>
       <circle cx="122" cy="30" r="5" fill="#F5C842"/>
     </svg>
@@ -568,42 +473,32 @@ function IllustDocGen() {
 }
 
 /* ══════════════════════════════════════════════════════════════
-   Hero Illustration — person at PC + floating AI data particles
+   Hero Illustration
    ══════════════════════════════════════════════════════════════ */
 function HeroIllustSVG() {
   return (
     <div className="hero-person-illust">
       <svg viewBox="0 0 200 180" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-        {/* Desk */}
         <rect x="20" y="128" width="160" height="8" rx="4" fill="#E8D5B0"/>
         <rect x="45" y="136" width="8" height="32" rx="3" fill="#D4C09A"/>
         <rect x="147" y="136" width="8" height="32" rx="3" fill="#D4C09A"/>
-        {/* Monitor */}
         <rect x="60" y="72" width="100" height="60" rx="6" fill="#1A1A2E"/>
         <rect x="64" y="76" width="92" height="52" rx="4" fill="#2A5AA0"/>
-        {/* Screen: chart bars */}
         <rect x="72"  y="90" width="8" height="28" rx="2" fill="#6DD44A" opacity="0.9"/>
         <rect x="84"  y="82" width="8" height="36" rx="2" fill="#3B9EE8" opacity="0.9"/>
         <rect x="96"  y="87" width="8" height="31" rx="2" fill="#F5C842" opacity="0.9"/>
         <rect x="108" y="78" width="8" height="40" rx="2" fill="#6DD44A" opacity="0.9"/>
         <rect x="120" y="85" width="8" height="33" rx="2" fill="#3B9EE8" opacity="0.9"/>
         <rect x="132" y="74" width="8" height="44" rx="2" fill="#F5C842" opacity="0.9"/>
-        {/* Monitor stand */}
         <rect x="106" y="132" width="8" height="8" rx="2" fill="#B0C4D8"/>
         <rect x="96"  y="140" width="28" height="4" rx="2" fill="#B0C4D8"/>
-        {/* Head */}
         <ellipse cx="100" cy="58" rx="14" ry="15" fill="#FFD5A8"/>
-        {/* Hair */}
         <ellipse cx="100" cy="47" rx="14" ry="9" fill="#1A1A2E"/>
         <rect x="86" y="47" width="5" height="14" rx="2.5" fill="#1A1A2E"/>
-        {/* Body */}
         <rect x="86" y="72" width="28" height="36" rx="8" fill="#4A90D9"/>
-        {/* Arms */}
         <rect x="68" y="96" width="20" height="8" rx="4" fill="#FFD5A8"/>
         <rect x="112" y="96" width="20" height="8" rx="4" fill="#FFD5A8"/>
-        {/* Keyboard */}
         <rect x="62" y="124" width="76" height="6" rx="3" fill="#C8D8E8"/>
-        {/* Floating AI data particles */}
         <circle cx="170" cy="50" r="5" fill="#3B9EE8" opacity="0.7">
           <animate attributeName="cy" values="50;40;50" dur="3s" repeatCount="indefinite"/>
           <animate attributeName="opacity" values="0.7;1;0.7" dur="3s" repeatCount="indefinite"/>
@@ -617,7 +512,6 @@ function HeroIllustSVG() {
         <circle cx="178" cy="28" r="2.5" fill="#FF6B6B" opacity="0.7">
           <animate attributeName="cy" values="28;18;28" dur="2.8s" repeatCount="indefinite"/>
         </circle>
-        {/* Dashed lines: monitor → particles */}
         <line x1="160" y1="76" x2="170" y2="50" stroke="#3B9EE8" strokeWidth="1" opacity="0.22" strokeDasharray="3 3"/>
         <line x1="160" y1="76" x2="185" y2="78" stroke="#F5C842" strokeWidth="1" opacity="0.22" strokeDasharray="3 3"/>
         <line x1="160" y1="76" x2="160" y2="32" stroke="#6DD44A" strokeWidth="1" opacity="0.22" strokeDasharray="3 3"/>
@@ -807,7 +701,6 @@ export default function HomePage() {
       <CursorGlow />
       <BackToTop />
 
-
       {/* ── Hero ── */}
       <section className="hero-section" id="top" ref={heroRef}>
         <div className="hero-bg-grid" />
@@ -909,9 +802,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* ════════════════════════════════════════════
-          AI AGENT DETAIL SECTION
-          ════════════════════════════════════════════ */}
+      {/* ── AI Agent Detail ── */}
       <section id="ai-agent" className="section agent-section reveal">
         <div className="agent-inner">
           <div className="agent-copy">
@@ -962,9 +853,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* ════════════════════════════════════════════
-          CONSULTING SECTION
-          ════════════════════════════════════════════ */}
+      {/* ── Consulting ── */}
       <section id="consulting" className="section consulting-section reveal">
         <div className="consulting-inner">
           <div className="section-head centered">
