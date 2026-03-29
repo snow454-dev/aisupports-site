@@ -6,22 +6,11 @@ const TO_EMAIL = process.env.CONTACT_EMAIL ?? "ai.hokkaidorisu@gmail.com";
 
 export async function POST(req: NextRequest) {
   try {
-    const formData = await req.formData();
-
-    const company    = String(formData.get("company")    ?? "").trim();
-    const name       = String(formData.get("name")       ?? "").trim();
-    const email      = String(formData.get("email")      ?? "").trim();
-    const message    = String(formData.get("message")    ?? "").trim();
-    const attachment = formData.get("attachment") as File | null;
+    const body = await req.json();
+    const { company, name, email, message, fileUrl } = body;
 
     if (!company || !name || !email || !message) {
       return NextResponse.json({ error: "必須項目が不足しています。" }, { status: 400 });
-    }
-
-    const attachments: { filename: string; content: Buffer }[] = [];
-    if (attachment && attachment.size > 0) {
-      const buffer = Buffer.from(await attachment.arrayBuffer());
-      attachments.push({ filename: attachment.name, content: buffer });
     }
 
     const html = `
@@ -38,9 +27,9 @@ export async function POST(req: NextRequest) {
               <td style="padding:8px;border-bottom:1px solid #eee;">
                 <a href="mailto:${email}">${email}</a>
               </td></tr>
-          <tr><td style="padding:8px;background:#f5f5f5;font-weight:bold;">添付ファイル</td>
+          <tr><td style="padding:8px;background:#f5f5f5;font-weight:bold;">ファイルURL</td>
               <td style="padding:8px;border-bottom:1px solid #eee;">
-                ${attachment && attachment.size > 0 ? `📎 ${attachment.name}` : "なし"}
+                ${fileUrl ? `<a href="${fileUrl}">${fileUrl}</a>` : "なし"}
               </td></tr>
         </table>
         <h3 style="margin-top:24px;color:#333;">お問い合わせ内容</h3>
@@ -59,7 +48,6 @@ export async function POST(req: NextRequest) {
       replyTo: email,
       subject: `【お問い合わせ】${company} ${name}様`,
       html,
-      attachments: attachments.length > 0 ? attachments : undefined,
     });
 
     if (error) {
