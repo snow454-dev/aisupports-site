@@ -215,63 +215,36 @@ function ContactForm() {
   const onDrop = (e: DragEvent<HTMLDivElement>) => {
     e.preventDefault(); setDragging(false); handleFile(e.dataTransfer.files?.[0]);
   };
-  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
+const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setSubmitAttempted(true);
     if (!agreed) return;
-    if (file && file.size > FILE_SIZE_LIMIT) {
-      setErrorMsg(`ファイルサイズが大きすぎます（上限 10MB）`);
-      setStatus("error");
-      return;
-    }
     setStatus("sending");
 
-    const buildFormData = (withFile: boolean) => {
-      const data = new FormData(e.currentTarget);
-      if (withFile && file) data.append("attachment", file);
-      return data;
-    };
-
-    const send = async (data: FormData) =>
-      fetch("https://formspree.io/f/mojkzggk", {
-        method: "POST", body: data, headers: { Accept: "application/json" },
-      });
-
     try {
-      // まずファイルありで送信を試みる
-      let res = await send(buildFormData(true));
-
-      // ファイルが原因でエラーになった場合はファイルなしで再送
-      if (!res.ok && file) {
-        const body = await res.json().catch(() => ({}));
-        const isFileError = JSON.stringify(body).toLowerCase().includes("file")
-          || JSON.stringify(body).toLowerCase().includes("attachment")
-          || JSON.stringify(body).toLowerCase().includes("upload");
-        if (isFileError) {
-          res = await send(buildFormData(false));
-          if (res.ok) {
-            setStatus("success");
-            formRef.current?.reset();
-            setFile(null);
-            setAgreed(false);
-            setSubmitAttempted(false);
-            setErrorMsg("お問い合わせ内容は送信できましたが、ファイルの添付には対応していません。ファイルは別途メールにてお送りください。");
-            return;
-          }
-        }
-      }
+      const formEl = e.currentTarget;
+      const res = await fetch("/api/contact", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          company: (formEl.elements.namedItem("company") as HTMLInputElement)?.value,
+          name:    (formEl.elements.namedItem("name")    as HTMLInputElement)?.value,
+          email:   (formEl.elements.namedItem("email")   as HTMLInputElement)?.value,
+          message: (formEl.elements.namedItem("message") as HTMLTextAreaElement)?.value,
+          fileUrl: (formEl.elements.namedItem("fileUrl") as HTMLInputElement)?.value,
+        }),
+      });
 
       if (res.ok) {
         setStatus("success");
         formRef.current?.reset();
-        setFile(null);
         setAgreed(false);
         setSubmitAttempted(false);
       } else {
         let msg = "送信に失敗しました。時間をおいて再度お試しください。";
         try {
           const body = await res.json();
-          if (body?.errors?.[0]?.message) msg = body.errors[0].message;
+          if (body?.error) msg = body.error;
         } catch { /* ignore */ }
         setErrorMsg(msg);
         setStatus("error");
@@ -281,7 +254,7 @@ function ContactForm() {
       setStatus("error");
     }
   };
-
+   
   if (status === "success") {
     return (
       <div className="form-success">
