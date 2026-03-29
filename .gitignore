@@ -39,3 +39,10 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# backups
+/app/backup20260323/
+/app/バックアップ/
+/実績/
+/doc/
+/pic/
