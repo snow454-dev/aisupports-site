@@ -59,7 +59,7 @@ function useTilt(strength = 7) {
   const onMove = useCallback((e: React.MouseEvent<HTMLElement>) => {
     const el = ref.current; if (!el) return;
     const r  = el.getBoundingClientRect();
-    const tx = ((e.clientX - r.left  - r.width  / 2) / (r.width  / 2)) *  strength;
+    const tx = ((e.clientX - r.left  - r.width  / 2) / (r.width  / 2)) * strength;
     const ty = ((e.clientY - r.top   - r.height / 2) / (r.height / 2)) * -strength;
     el.style.transition = "transform 0.05s linear";
     el.style.transform  = `perspective(700px) rotateX(${ty}deg) rotateY(${tx}deg) translateY(-6px)`;
@@ -206,16 +206,17 @@ function ContactForm() {
 
     try {
       const formEl = e.currentTarget;
-      const res = await fetch("/api/contact", {
+      // Formspreeの送信先（直接POST送信）
+      const formUrl = "https://formspree.io/f/mqegppnz"; 
+      
+      const formData = new FormData(formEl);
+
+      const res = await fetch(formUrl, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          company: (formEl.elements.namedItem("company") as HTMLInputElement)?.value,
-          name:    (formEl.elements.namedItem("name")    as HTMLInputElement)?.value,
-          email:   (formEl.elements.namedItem("email")   as HTMLInputElement)?.value,
-          message: (formEl.elements.namedItem("message") as HTMLTextAreaElement)?.value,
-          fileUrl: (formEl.elements.namedItem("fileUrl") as HTMLInputElement)?.value,
-        }),
+        headers: {
+          'Accept': 'application/json'
+        },
+        body: formData, // FormDataをそのまま送る
       });
 
       if (res.ok) {
@@ -249,7 +250,7 @@ function ContactForm() {
   }
 
   return (
-    <form className="contact-form" onSubmit={handleSubmit} ref={formRef}>
+    <form className="contact-form" onSubmit={handleSubmit} ref={formRef} encType="multipart/form-data">
       <div className="form-row">
         <div className="form-field">
           <label className="form-label">企業名 <span className="req">*</span></label>
@@ -262,28 +263,29 @@ function ContactForm() {
       </div>
       <div className="form-field">
         <label className="form-label">メールアドレス <span className="req">*</span></label>
-        <input className="form-input" name="email" type="email" placeholder="yamada@company.co.jp" required />
+        <input className="form-input" name="_replyto" type="email" placeholder="yamada@company.co.jp" required />
       </div>
       <div className="form-field">
         <label className="form-label">お問い合わせ内容 <span className="req">*</span></label>
         <textarea className="form-textarea" name="message" rows={5}
           placeholder="現在の課題や自動化したい業務、ご要望などをご記入ください。" required />
       </div>
+      
+      {/* 修正箇所：ファイル添付欄 */}
       <div className="form-field">
-        <label className="form-label">
-          ファイル共有URL
-          <span className="form-label-note">（任意 — Google DriveやDropboxのリンク）</span>
-        </label>
+        <label className="form-label">資料・ファイル添付 (10MB以内)</label>
         <input
           className="form-input"
-          name="fileUrl"
-          type="url"
-          placeholder="https://drive.google.com/..."
+          style={{ border: "none", padding: "8px 0" }}
+          name="upload"
+          type="file"
+          accept=".pdf,.jpg,.png,.zip,.docx"
         />
         <p className="form-note" style={{ marginTop: 6 }}>
-          ※ Google Driveの場合は「リンクを知っている全員が閲覧可能」に設定してからURLを貼り付けてください。
+          ※ Google Drive等のURLがある場合はメッセージ欄に貼り付けてください。
         </p>
       </div>
+
       {/* プライバシーポリシー同意 */}
       <div className="privacy-agree-wrap">
         <input
