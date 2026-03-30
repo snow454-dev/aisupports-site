@@ -250,7 +250,7 @@ function ContactForm() {
   }
 
   return (
-    <form className="contact-form" onSubmit={handleSubmit} ref={formRef} encType="multipart/form-data">
+    <form className="contact-form" onSubmit={handleSubmit} ref={formRef}>
       <div className="form-row">
         <div className="form-field">
           <label className="form-label">企業名 <span className="req">*</span></label>
@@ -271,18 +271,20 @@ function ContactForm() {
           placeholder="現在の課題や自動化したい業務、ご要望などをご記入ください。" required />
       </div>
       
-      {/* 修正箇所：ファイル添付欄 */}
+      {/* 修正箇所：テキスト入力（URL用）に戻しました */}
       <div className="form-field">
-        <label className="form-label">資料・ファイル添付 (10MB以内)</label>
+        <label className="form-label">
+          ファイル共有URL
+          <span className="form-label-note">（任意 — Google DriveやDropboxのリンク）</span>
+        </label>
         <input
           className="form-input"
-          style={{ border: "none", padding: "8px 0" }}
-          name="upload"
-          type="file"
-          accept=".pdf,.jpg,.png,.zip,.docx"
+          name="fileUrl"
+          type="url"
+          placeholder="https://drive.google.com/..."
         />
         <p className="form-note" style={{ marginTop: 6 }}>
-          ※ Google Drive等のURLがある場合はメッセージ欄に貼り付けてください。
+          ※ Google Driveの場合は「リンクを知っている全員が閲覧可能」に設定してからURLを貼り付けてください。
         </p>
       </div>
 
