@@ -19,28 +19,37 @@ export default function SiteHeader() {
             </svg>
             <span className="brand-name">AISupports</span>
           </a>
+          
+          {/* 元の nav クラスとレイアウトを完全に復元 */}
           <nav className="nav">
             <a href="/#results">実績</a>
             
-            {/* ▼ ドロップダウンメニューに変更 ▼ */}
-            <div className="nav-dropdown">
-              <a href="/#services" className="nav-dropdown-trigger">
-                サービス <span className="dropdown-arrow">▼</span>
+            {/* サービス項目だけをドロップダウン化（元のデザインを維持） */}
+            <div className="group relative flex items-center h-full">
+              <a href="/#services" style={{ display: "flex", alignItems: "center", gap: "4px" }}>
+                サービス <span className="transition-transform duration-200 group-hover:rotate-180" style={{ fontSize: "10px", opacity: 0.6 }}>▼</span>
               </a>
-              <div className="nav-dropdown-content">
-                <a href="https://www.hojyokins.jp/" target="_blank" rel="noopener noreferrer">
-                  補助金申請AIサポート
-                </a>
-                <a href="/#ai-agent">AIエージェント構築</a>
-                <a href="/#consulting">DXコンサルティング</a>
-                <a href="/#services">システムインテグレーション</a>
+              
+              {/* ドロップダウンメニューの白い箱 */}
+              <div className="absolute top-full left-1/2 -translate-x-1/2 pt-4 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-[100]">
+                <div style={{ backgroundColor: "#ffffff", minWidth: "220px", boxShadow: "0 8px 24px rgba(0,0,0,0.12)", borderRadius: "8px", padding: "8px 0", border: "1px solid rgba(13,31,45,0.08)", display: "flex", flexDirection: "column" }}>
+                  <a href="https://www.hojyokins.jp/" target="_blank" rel="noopener noreferrer" className="hover:bg-[#f4f7fa] hover:text-[#3b9ee8]" style={{ opacity: 1, padding: "12px 20px", display: "block" }}>
+                    補助金申請AIサポート
+                  </a>
+                  <a href="/#services" className="hover:bg-[#f4f7fa] hover:text-[#3b9ee8]" style={{ opacity: 1, padding: "12px 20px", display: "block" }}>
+                    その他のサービス
+                  </a>
+                </div>
               </div>
             </div>
-            {/* ▲ ドロップダウンメニューここまで ▲ */}
 
+            {/* 消してしまっていた元のメニュー項目を復元 */}
+            <a href="/#ai-agent">AIエージェント</a>
+            <a href="/#consulting">コンサルティング</a>
             <a href="/#process">進め方</a>
             <a href="/#contact">お問い合わせ</a>
           </nav>
+
           <a className="btn btn-sm btn-primary" href="/#contact">無料相談</a>
           <button
             className={`hamburger${menuOpen ? " open" : ""}`}
@@ -56,15 +65,16 @@ export default function SiteHeader() {
       {/* モバイルメニュー（スマホ版） */}
       <div className={`mobile-menu${menuOpen ? " open" : ""}`}>
         <a href="/#results"    onClick={close}>実績</a>
-        
-        {/* スマホ版では、サービス一覧を少し字下げして表示 */}
         <a href="/#services"   onClick={close}>サービス</a>
-        <a href="https://www.hojyokins.jp/" target="_blank" rel="noopener noreferrer" className="mobile-sublink" onClick={close}>
+        
+        {/* スマホ版の補助金リンク追加 */}
+        <a href="https://www.hojyokins.jp/" target="_blank" rel="noopener noreferrer" style={{ paddingLeft: "32px", fontSize: "14px", borderBottom: "none", paddingTop: "0", opacity: 0.8 }} onClick={close}>
           ↳ 補助金申請AIサポート
         </a>
-        <a href="/#ai-agent" className="mobile-sublink" onClick={close}>↳ AIエージェント構築</a>
-        <a href="/#consulting" className="mobile-sublink" onClick={close}>↳ DXコンサルティング</a>
         
+        {/* 元のメニュー項目を復元 */}
+        <a href="/#ai-agent"   onClick={close}>AIエージェント</a>
+        <a href="/#consulting" onClick={close}>コンサルティング</a>
         <a href="/#process"    onClick={close}>進め方</a>
         <a href="/#contact"    onClick={close}>お問い合わせ</a>
       </div>
