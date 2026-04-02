@@ -4,6 +4,8 @@ import { useState } from "react";
 
 export default function SiteHeader() {
   const [menuOpen, setMenuOpen] = useState(false);
+  // ▼ ドロップダウンの開閉を管理する状態を追加 ▼
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
   const close = () => setMenuOpen(false);
 
@@ -20,30 +22,70 @@ export default function SiteHeader() {
             <span className="brand-name">AISupports</span>
           </a>
           
-          {/* 元の nav クラスとレイアウトを完全に復元 */}
           <nav className="nav">
             <a href="/#results">実績</a>
             
-            {/* サービス項目だけをドロップダウン化（元のデザインを維持） */}
-            <div className="group relative flex items-center h-full">
+            {/* ▼ 確実に動くReact制御のドロップダウン ▼ */}
+            <div 
+              style={{ position: "relative", display: "inline-flex", alignItems: "center", height: "100%", cursor: "pointer" }}
+              onMouseEnter={() => setIsDropdownOpen(true)}
+              onMouseLeave={() => setIsDropdownOpen(false)}
+            >
               <a href="/#services" style={{ display: "flex", alignItems: "center", gap: "4px" }}>
-                サービス <span className="transition-transform duration-200 group-hover:rotate-180" style={{ fontSize: "10px", opacity: 0.6 }}>▼</span>
+                サービス 
+                <span style={{ 
+                  fontSize: "10px", 
+                  opacity: 0.6, 
+                  transform: isDropdownOpen ? "rotate(180deg)" : "rotate(0deg)", 
+                  transition: "transform 0.2s ease" 
+                }}>▼</span>
               </a>
               
-              {/* ドロップダウンメニューの白い箱 */}
-              <div className="absolute top-full left-1/2 -translate-x-1/2 pt-4 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-[100]">
-                <div style={{ backgroundColor: "#ffffff", minWidth: "220px", boxShadow: "0 8px 24px rgba(0,0,0,0.12)", borderRadius: "8px", padding: "8px 0", border: "1px solid rgba(13,31,45,0.08)", display: "flex", flexDirection: "column" }}>
-                  <a href="https://www.hojyokins.jp/" target="_blank" rel="noopener noreferrer" className="hover:bg-[#f4f7fa] hover:text-[#3b9ee8]" style={{ opacity: 1, padding: "12px 20px", display: "block" }}>
+              <div style={{
+                position: "absolute",
+                top: "100%",
+                left: "50%",
+                transform: "translateX(-50%)",
+                paddingTop: "24px",
+                opacity: isDropdownOpen ? 1 : 0,
+                visibility: isDropdownOpen ? "visible" : "hidden",
+                transition: "all 0.2s ease",
+                pointerEvents: isDropdownOpen ? "auto" : "none",
+                zIndex: 100
+              }}>
+                <div style={{ 
+                  backgroundColor: "#ffffff", 
+                  minWidth: "220px", 
+                  boxShadow: "0 8px 24px rgba(0,0,0,0.12)", 
+                  borderRadius: "8px", 
+                  padding: "8px 0", 
+                  border: "1px solid rgba(13,31,45,0.08)",
+                  display: "flex",
+                  flexDirection: "column"
+                }}>
+                  <a 
+                    href="https://www.hojyokins.jp/" 
+                    target="_blank" 
+                    rel="noopener noreferrer" 
+                    style={{ padding: "12px 20px", display: "block", color: "#0d1f2d", textDecoration: "none", fontSize: "14px", transition: "0.2s" }} 
+                    onMouseOver={(e) => { e.currentTarget.style.backgroundColor = "#f4f7fa"; e.currentTarget.style.color = "#3b9ee8"; }} 
+                    onMouseOut={(e) => { e.currentTarget.style.backgroundColor = "transparent"; e.currentTarget.style.color = "#0d1f2d"; }}
+                  >
                     補助金申請AIサポート
                   </a>
-                  <a href="/#services" className="hover:bg-[#f4f7fa] hover:text-[#3b9ee8]" style={{ opacity: 1, padding: "12px 20px", display: "block" }}>
+                  <a 
+                    href="/#services" 
+                    style={{ padding: "12px 20px", display: "block", color: "#0d1f2d", textDecoration: "none", fontSize: "14px", transition: "0.2s" }} 
+                    onMouseOver={(e) => { e.currentTarget.style.backgroundColor = "#f4f7fa"; e.currentTarget.style.color = "#3b9ee8"; }} 
+                    onMouseOut={(e) => { e.currentTarget.style.backgroundColor = "transparent"; e.currentTarget.style.color = "#0d1f2d"; }}
+                  >
                     その他のサービス
                   </a>
                 </div>
               </div>
             </div>
+            {/* ▲ ドロップダウンここまで ▲ */}
 
-            {/* 消してしまっていた元のメニュー項目を復元 */}
             <a href="/#ai-agent">AIエージェント</a>
             <a href="/#consulting">コンサルティング</a>
             <a href="/#process">進め方</a>
@@ -67,12 +109,11 @@ export default function SiteHeader() {
         <a href="/#results"    onClick={close}>実績</a>
         <a href="/#services"   onClick={close}>サービス</a>
         
-        {/* スマホ版の補助金リンク追加 */}
+        {/* スマホ版リンク */}
         <a href="https://www.hojyokins.jp/" target="_blank" rel="noopener noreferrer" style={{ paddingLeft: "32px", fontSize: "14px", borderBottom: "none", paddingTop: "0", opacity: 0.8 }} onClick={close}>
           ↳ 補助金申請AIサポート
         </a>
         
-        {/* 元のメニュー項目を復元 */}
         <a href="/#ai-agent"   onClick={close}>AIエージェント</a>
         <a href="/#consulting" onClick={close}>コンサルティング</a>
         <a href="/#process"    onClick={close}>進め方</a>
