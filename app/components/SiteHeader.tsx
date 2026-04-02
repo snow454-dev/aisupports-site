@@ -21,9 +21,23 @@ export default function SiteHeader() {
           </a>
           <nav className="nav">
             <a href="/#results">実績</a>
-            <a href="/#services">サービス</a>
-            <a href="/#ai-agent">AIエージェント</a>
-            <a href="/#consulting">コンサルティング</a>
+            
+            {/* ▼ ドロップダウンメニューに変更 ▼ */}
+            <div className="nav-dropdown">
+              <a href="/#services" className="nav-dropdown-trigger">
+                サービス <span className="dropdown-arrow">▼</span>
+              </a>
+              <div className="nav-dropdown-content">
+                <a href="https://www.hojyokins.jp/" target="_blank" rel="noopener noreferrer">
+                  補助金申請AIサポート
+                </a>
+                <a href="/#ai-agent">AIエージェント構築</a>
+                <a href="/#consulting">DXコンサルティング</a>
+                <a href="/#services">システムインテグレーション</a>
+              </div>
+            </div>
+            {/* ▲ ドロップダウンメニューここまで ▲ */}
+
             <a href="/#process">進め方</a>
             <a href="/#contact">お問い合わせ</a>
           </nav>
@@ -38,11 +52,19 @@ export default function SiteHeader() {
           </button>
         </div>
       </header>
+      
+      {/* モバイルメニュー（スマホ版） */}
       <div className={`mobile-menu${menuOpen ? " open" : ""}`}>
         <a href="/#results"    onClick={close}>実績</a>
+        
+        {/* スマホ版では、サービス一覧を少し字下げして表示 */}
         <a href="/#services"   onClick={close}>サービス</a>
-        <a href="/#ai-agent"   onClick={close}>AIエージェント</a>
-        <a href="/#consulting" onClick={close}>コンサルティング</a>
+        <a href="https://www.hojyokins.jp/" target="_blank" rel="noopener noreferrer" className="mobile-sublink" onClick={close}>
+          ↳ 補助金申請AIサポート
+        </a>
+        <a href="/#ai-agent" className="mobile-sublink" onClick={close}>↳ AIエージェント構築</a>
+        <a href="/#consulting" className="mobile-sublink" onClick={close}>↳ DXコンサルティング</a>
+        
         <a href="/#process"    onClick={close}>進め方</a>
         <a href="/#contact"    onClick={close}>お問い合わせ</a>
       </div>
