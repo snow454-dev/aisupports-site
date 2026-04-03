@@ -265,13 +265,58 @@ function ContactForm() {
         <label className="form-label">メールアドレス <span className="req">*</span></label>
         <input className="form-input" name="_replyto" type="email" placeholder="yamada@company.co.jp" required />
       </div>
+
+      {/* 🔴 追加：業種と営業担当者コード */}
+      <div className="form-row">
+        <div className="form-field">
+          <label className="form-label">業種 <span className="req">*</span></label>
+          <select className="form-input" name="industry" required style={{ backgroundColor: "#fff" }}>
+            <option value="">選択してください</option>
+            <option value="金融・保険">金融・保険</option>
+            <option value="建設・不動産">建設・不動産</option>
+            <option value="製造業">製造業</option>
+            <option value="小売・飲食・サービス">小売・飲食・サービス</option>
+            <option value="医療・福祉">医療・福祉</option>
+            <option value="農業・一次産業">農業・一次産業</option>
+            <option value="IT・通信">IT・通信</option>
+            <option value="その他">その他</option>
+          </select>
+        </div>
+        <div className="form-field">
+          <label className="form-label">営業担当者コード <span className="form-label-note" style={{fontSize:"0.8em", color:"#666"}}>（任意）</span></label>
+          <input className="form-input" name="sales_code" type="text" placeholder="例：1234" />
+        </div>
+      </div>
+
+      {/* 🔴 追加：現在の課題（複数選択可） */}
+      <div className="form-field">
+        <label className="form-label">現在の課題 <span className="form-label-note" style={{fontSize:"0.8em", color:"#666"}}>（複数選択可）</span></label>
+        <div style={{ display: "flex", flexDirection: "column", gap: "10px", marginTop: "8px", padding: "12px", background: "#f8fafc", borderRadius: "8px", border: "1px solid #e2e8f0" }}>
+          <label style={{ display: "flex", alignItems: "flex-start", gap: "8px", fontSize: "14px", cursor: "pointer" }}>
+            <input type="checkbox" name="challenge" value="補助金" style={{ marginTop: "3px" }} /> 
+            <span>老朽化した設備を新しくしたい（補助金・融資対象）</span>
+          </label>
+          <label style={{ display: "flex", alignItems: "flex-start", gap: "8px", fontSize: "14px", cursor: "pointer" }}>
+            <input type="checkbox" name="challenge" value="IT導入" style={{ marginTop: "3px" }} /> 
+            <span>ITツールを導入して業務を効率化したい</span>
+          </label>
+          <label style={{ display: "flex", alignItems: "flex-start", gap: "8px", fontSize: "14px", cursor: "pointer" }}>
+            <input type="checkbox" name="challenge" value="固定費削減" style={{ marginTop: "3px" }} /> 
+            <span>電気代・通信費などの固定費を下げたい（コスト削減診断）</span>
+          </label>
+          <label style={{ display: "flex", alignItems: "flex-start", gap: "8px", fontSize: "14px", cursor: "pointer" }}>
+            <input type="checkbox" name="challenge" value="その他" style={{ marginTop: "3px" }} /> 
+            <span>その他（下記に詳細をご記入ください）</span>
+          </label>
+        </div>
+      </div>
+
       <div className="form-field">
         <label className="form-label">お問い合わせ内容 <span className="req">*</span></label>
-        <textarea className="form-textarea" name="message" rows={5}
-          placeholder="現在の課題や自動化したい業務、ご要望などをご記入ください。" required />
+        <textarea className="form-textarea" name="message" rows={4}
+          placeholder="具体的なご相談内容や、自動化したい業務の詳細をご記入ください。" required />
       </div>
       
-      {/* 修正箇所：テキスト入力（URL用）に戻しました */}
       <div className="form-field">
         <label className="form-label">
           ファイル共有URL
@@ -311,9 +356,8 @@ function ContactForm() {
       <button type="submit"
         className={`btn btn-primary form-submit${status === "sending" ? " sending" : ""}${!agreed ? " form-submit-disabled" : ""}`}
         disabled={status === "sending"}>
-        {status === "sending" ? <><span className="spinner"/>送信中…</> : "相談・見積もり依頼を送る →"}
+        {status === "sending" ? <><span className="spinner"/>送信中…</> : "診断・無料相談を申し込む →"}
       </button>
-      <p className="form-note">課題のデータをGoogle Driveで共有いただければ、現状分析と改善提案書を無料でお送りします。</p>
     </form>
   );
 }
@@ -648,15 +692,15 @@ export default function HomePage() {
     { icon: "📊", title: "Data & Analytics",
       desc: "GA4・スプレッドシート・各種DBのデータをLooker StudioやAIで分析。経営判断を支えるダッシュボードと定期レポートの自動生成を実現します。" },
     { icon: "🤖", title: "AI Agents",
-      desc: "問い合わせ対応・見積もり作成・報告書生成など、業務文脈を理解して動くAIエージェントを構築。LINE・Slack・Webアプリへ組み込みます。" },
+      desc: "「テクノロジーは、人間の能力を拡張するための『心の自転車』であるべきだ」現場の意図を先読みし、自律的に動くAIエージェントを構築・実装します。" },
   ];
 
   const agentFeatures: { title: string; text: string; img: string }[] = [
-    { title: "自動見積もり生成",              text: "LINE・Webフォームからの問い合わせをAIが解析し、自動で見積もり書を生成・送付。人手ゼロで対応完結。",      img: "/mitsumori1.png" },
-    { title: "欠品処理・タイマー自動化",      text: "在庫欠品の検知からタイマー起動による自動発注・担当者通知まで、定型処理をフル自動化。",                   img: "/keppin2.png" },
-    { title: "自動シフト管理",                text: "スタッフの希望・スキル・法令制約を学習したAIが最適シフトを自動生成。管理工数を大幅削減。",               img: "/shift3.png" },
-    { title: "医療現場の売上予測・価格提案",  text: "診療データ・来院履歴から売上を予測し、現場に適した価格サジェスチョンをリアルタイムで提供。",            img: "/yosoku4.png" },
-    { title: "定期レポート自動通知",          text: "KPIダッシュボードを自動集計し、経営陣・現場スタッフへのレポートをSlack・メールで自動配信。",            img: "/reppot5.png" },
+    { title: "自動見積もり生成",             text: "LINE・Webフォームからの問い合わせをAIが解析し、自動で見積もり書を生成・送付。人手ゼロで対応完結。",     img: "/mitsumori1.png" },
+    { title: "欠品処理・タイマー自動化",     text: "在庫欠品の検知からタイマー起動による自動発注・担当者通知まで、定型処理をフル自動化。",                   img: "/keppin2.png" },
+    { title: "自動シフト管理",               text: "スタッフの希望・スキル・法令制約を学習したAIが最適シフトを自動生成。管理工数を大幅削減。",               img: "/shift3.png" },
+    { title: "医療現場の売上予測・価格提案", text: "診療データ・来院履歴から売上を予測し、現場に適した価格サジェスチョンをリアルタイムで提供。",             img: "/yosoku4.png" },
+    { title: "定期レポート自動通知",         text: "KPIダッシュボードを自動集計し、経営陣・現場スタッフへのレポートをSlack・メールで自動配信。",             img: "/reppot5.png" },
     { title: "ドキュメント自動生成（近日公開）", text: "議事録・業務マニュアル・提案書など、各種ドキュメントのAI自動作成機能を順次リリース予定。",           img: "/documen6.png" },
   ];
 
@@ -716,23 +760,35 @@ export default function HomePage() {
               <span className="eyebrow-dot" />
               AI × 業務自動化 × DX戦略
             </div>
-            <h1 className="hero-title">
-              業務の<span className="grad-text">ムダ</span>を、<br />
-              AIが動く<span className="grad-text">仕組み</span>に。
+            
+            {/* 🔴 メインキャッチコピーの書き換え */}
+            <h1 className="hero-title" style={{ fontSize: "clamp(2.5rem, 5vw, 4rem)", letterSpacing: "-0.02em", lineHeight: 1.2 }}>
+              未来の社員を<br />
+              <span className="grad-text">デザインする。</span>
             </h1>
-            <p className="hero-desc">
-              中小企業・地域企業の現場に入り込み、業務フローの棚卸しから
-              AIエージェント実装・コンサルティングまで一気通貫で支援します。
-              金融・建設・医療・製造など、業種を問わず実績多数。
-            </p>
-            <div className="hero-actions">
-              <a className="btn btn-primary" href="#contact">無料で相談する</a>
+            
+            {/* 🔴 サブキャッチとリード文の書き換え */}
+            <div className="hero-desc" style={{ marginTop: "24px" }}>
+              <p style={{ fontWeight: 700, fontSize: "1.1rem", marginBottom: "12px", color: "var(--color-heading)" }}>
+                業務のムダを、AIが動く仕組みに変え、「AI人材」を育成する。
+              </p>
+              <p style={{ lineHeight: 1.8 }}>
+                想像してみてください。<br />
+                煩雑な事務作業から解放され、クリエイティブな戦略に没頭するチームの姿を。<br />
+                私たちは、あなたのビジネスを加速させるための、新しい「知能の形」を設計します。
+              </p>
+            </div>
+            
+            <div className="hero-actions" style={{ marginTop: "32px" }}>
+              <a className="btn btn-primary" href="#contact">無料で未来をデザインする</a>
               <a className="btn btn-outline" href="#results">実績を見る</a>
             </div>
+            
+            {/* 🔴 チップ（タグ）の書き換え */}
             <div className="hero-chips">
-              <div className="chip"><span className="chip-check">✓</span>業務フロー可視化から対応</div>
+              <div className="chip"><span className="chip-check">✓</span>営業コードによるセキュアな連携</div>
+              <div className="chip"><span className="chip-check">✓</span>補助金・固定費削減の自動リサーチ</div>
               <div className="chip"><span className="chip-check">✓</span>AIエージェント導入実績多数</div>
-              <div className="chip"><span className="chip-check">✓</span>定着・戦略まで伴走</div>
             </div>
           </div>
           <div className="hero-visual" ref={svgWrapRef} style={{ position: "relative" }}>
@@ -882,7 +938,7 @@ export default function HomePage() {
           <div className="consulting-tagline reveal">
             <p>
               <strong>コンサルティングとは</strong>、AIで業務を削減したその先のデザインサービスです。<br />
-              自社のAIサービスを同業他社へ横展開するデジタル戦略、海外への事業展開、
+              自社で実証したAIサービスを同業他社へ横展開するデジタル戦略、海外への事業展開、
               ワークライフバランス設計、海外人材のSNSリクルーティングまで——
               <strong>「AIの先にある経営」</strong>を、経営者と共に設計します。
             </p>
@@ -955,13 +1011,13 @@ export default function HomePage() {
             </h2>
             <p className="contact-desc">
               「どこから手をつければいいか分からない」という段階から
-              相談できます。課題のExcelやデータを送っていただければ、
+              相談できます。業種や課題を選択して送信いただければ、
               現状分析と具体的な実行提案書を無料でお送りします。
             </p>
             <ul className="contact-trust-list">
               <li><span className="ctrust-icon">✓</span>無料ヒアリング・提案書対応</li>
               <li><span className="ctrust-icon">✓</span>北海道全域対応可能</li>
-              <li><span className="ctrust-icon">✓</span>ファイル送付で即見積もり</li>
+              <li><span className="ctrust-icon">✓</span>補助金・コスト削減にも対応</li>
               <li><span className="ctrust-icon">✓</span>実績ベースの具体的提案</li>
             </ul>
           </div>
