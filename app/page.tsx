@@ -198,45 +198,40 @@ function ContactForm() {
   const [submitAttempted, setSubmitAttempted] = useState(false);
   const formRef = useRef<HTMLFormElement>(null);
 
-  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    setSubmitAttempted(true);
-    if (!agreed) return;
-    setStatus("sending");
+const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
+  e.preventDefault();
+  setSubmitAttempted(true);
+  if (!agreed) return;
+  setStatus("sending");
 
-    try {
-      const formEl = e.currentTarget;
-      const res = await fetch("/api/contact", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          company: (formEl.elements.namedItem("company") as HTMLInputElement)?.value,
-          name:    (formEl.elements.namedItem("name")    as HTMLInputElement)?.value,
-          email:   (formEl.elements.namedItem("email")   as HTMLInputElement)?.value,
-          message: (formEl.elements.namedItem("message") as HTMLTextAreaElement)?.value,
-          fileUrl: (formEl.elements.namedItem("fileUrl") as HTMLInputElement)?.value,
-        }),
-      });
+  try {
+    const formEl = e.currentTarget;
+    const formData = new FormData(formEl);
+    const res = await fetch("https://formspree.io/f/mqegppnz", {
+      method: "POST",
+      headers: { 'Accept': 'application/json' },
+      body: formData,
+    });
 
-      if (res.ok) {
-        setStatus("success");
-        formRef.current?.reset();
-        setAgreed(false);
-        setSubmitAttempted(false);
-      } else {
-        let msg = "送信に失敗しました。時間をおいて再度お試しください。";
-        try {
-          const body = await res.json();
-          if (body?.error) msg = body.error;
-        } catch { /* ignore */ }
-        setErrorMsg(msg);
-        setStatus("error");
-      }
-    } catch {
-      setErrorMsg("ネットワークエラーが発生しました。接続を確認して再度お試しください。");
+    if (res.ok) {
+      setStatus("success");
+      formRef.current?.reset();
+      setAgreed(false);
+      setSubmitAttempted(false);
+    } else {
+      let msg = "送信に失敗しました。時間をおいて再度お試しください。";
+      try {
+        const body = await res.json();
+        if (body?.error) msg = body.error;
+      } catch { /* ignore */ }
+      setErrorMsg(msg);
       setStatus("error");
     }
-  };
+  } catch {
+    setErrorMsg("ネットワークエラーが発生しました。接続を確認して再度お試しください。");
+    setStatus("error");
+  }
+};
 
   if (status === "success") {
     return (
