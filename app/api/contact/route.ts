@@ -43,7 +43,7 @@ export async function POST(req: NextRequest) {
     `;
 
     const { error } = await resend.emails.send({
-      from:    "AISupports <noreply@aisupports.cc>",
+      from:    "AISupports <hello@aisupports.cc>",
       to:      [TO_EMAIL],
       replyTo: email,
       subject: `【お問い合わせ】${company} ${name}様`,
