@@ -433,18 +433,21 @@ document.addEventListener('DOMContentLoaded', async function() {
     if (!el) return;
     var stage = el.querySelector('.flip-stage');
     if (!stage) return;
-    if (el.dataset.flipBound === '1' && root === el) return;
 
-    el.dataset.flipBound = '1';
+    // #inboundFlip 自体は同じノードでも、DCLogic が中の .flip-card を
+    // 作り直すことがあるため、参照は毎回取り直す(件数は少なく軽量)
     root = el;
     cards = Array.prototype.slice.call(stage.querySelectorAll('.flip-card'));
     dots = Array.prototype.slice.call(el.querySelectorAll('.flip-dot'));
 
-    // capture:true — DCLogic は内部コンテナをスクロールするため、
-    // バブルしない scroll イベントを capture 段階で捕まえる
-    window.removeEventListener('scroll', onScroll, true);
-    window.addEventListener('scroll', onScroll, { passive: true, capture: true });
-    window.addEventListener('resize', onScroll);
+    // scroll/resize リスナーの登録だけは二重登録を避ける
+    if (el.dataset.flipBound !== '1') {
+      el.dataset.flipBound = '1';
+      // capture:true — DCLogic は内部コンテナをスクロールするため、
+      // バブルしない scroll イベントを capture 段階で捕まえる
+      window.addEventListener('scroll', onScroll, { passive: true, capture: true });
+      window.addEventListener('resize', onScroll);
+    }
     render();
   }
 
