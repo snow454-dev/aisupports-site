@@ -413,6 +413,20 @@ document.addEventListener('DOMContentLoaded', async function() {
     if (!raf) raf = requestAnimationFrame(render);
   }
 
+  // スクロールが内部コンテナで起きても位置変化を検知できるよう、
+  // root.top を毎フレーム監視する(イベント経路に依存しない保険)
+  var lastTop = null;
+  function watch() {
+    if (root) {
+      var t = root.getBoundingClientRect().top;
+      if (t !== lastTop) {
+        lastTop = t;
+        render();
+      }
+    }
+    requestAnimationFrame(watch);
+  }
+
   function bind() {
     ensureStyle();   // 消されていたら毎回入れ直す
     var el = document.getElementById('inboundFlip');
@@ -426,11 +440,15 @@ document.addEventListener('DOMContentLoaded', async function() {
     cards = Array.prototype.slice.call(stage.querySelectorAll('.flip-card'));
     dots = Array.prototype.slice.call(el.querySelectorAll('.flip-dot'));
 
-    window.removeEventListener('scroll', onScroll);
-    window.addEventListener('scroll', onScroll, { passive: true });
+    // capture:true — DCLogic は内部コンテナをスクロールするため、
+    // バブルしない scroll イベントを capture 段階で捕まえる
+    window.removeEventListener('scroll', onScroll, true);
+    window.addEventListener('scroll', onScroll, { passive: true, capture: true });
     window.addEventListener('resize', onScroll);
     render();
   }
+
+  requestAnimationFrame(watch);
 
   ensureStyle();
   document.addEventListener('DOMContentLoaded', bind);
