@@ -109,13 +109,13 @@
 
   var CSS = [
     '@media (max-width: 900px){',
-      /* 520vh のスペーサーを解除して黒い余白を消す */
-      '#features > div[data-tour-spacer]{height:auto!important;}',
-      /* sticky と 100vh を解除し、通常フローに戻す */
+      /* スクロール量を確保する。6シーンで割ると1シーンあたり約0.6画面分 */
+      '#features > div[data-tour-spacer]{height:360vh!important;}',
+      /* ステップリストを画面に留める。overflow は奪わない */
       '#features > div[data-tour-spacer] > div[data-tour-stage]{',
-        'position:static!important;height:auto!important;',
-        'overflow:visible!important;display:block!important;',
-        'padding:64px 0!important;',
+        'position:sticky!important;top:0!important;height:100vh!important;',
+        'overflow:visible!important;display:flex!important;',
+        'align-items:center!important;',
       '}',
       /* 2カラムを1カラムに */
       '#features [data-tour-grid]{',
