@@ -24,11 +24,15 @@
   var STYLE_ID = 'inboundFlipStyle';
 
   var CSS = [
+    /* #inbound 側にも文脈を作り、フリップが後続セクションに重ならないようにする */
+    '#inbound{position:relative!important;z-index:0!important;}',
     '#inboundFlip{width:100%!important;min-height:260vh!important;',
-    'position:relative!important;display:block!important;}',
+    'position:relative!important;display:block!important;',
+    'z-index:0!important;isolation:isolate!important;}',
     '#inboundFlip .flip-stage{position:sticky!important;top:12vh!important;',
     'width:100%!important;max-width:1000px!important;margin:0 auto!important;',
-    'aspect-ratio:1456/1092;perspective:1800px;display:block!important;}',
+    'aspect-ratio:1456/1092;perspective:1800px;display:block!important;',
+    'z-index:1!important;}',
     '#inboundFlip .flip-card{position:absolute!important;inset:0!important;',
     'margin:0!important;transform-origin:left center!important;',
     'transform-style:preserve-3d;border-radius:14px;overflow:hidden;',
