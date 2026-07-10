@@ -99,6 +99,68 @@
   requestAnimationFrame(tick);
 })();
 </script>
+<script defer>
+(function () {
+  var STYLE_ID = 'featuresMobileFixStyle';
+
+  var CSS = [
+    '@media (max-width: 900px){',
+      /* 520vh のスペーサーを解除して黒い余白を消す */
+      '#features > div[data-tour-spacer]{height:auto!important;}',
+      /* sticky と 100vh を解除し、通常フローに戻す */
+      '#features > div[data-tour-spacer] > div[data-tour-stage]{',
+        'position:static!important;height:auto!important;',
+        'overflow:visible!important;display:block!important;',
+        'padding:64px 0!important;',
+      '}',
+      /* 2カラムを1カラムに */
+      '#features [data-tour-grid]{',
+        'grid-template-columns:1fr!important;gap:32px!important;',
+      '}',
+    '}'
+  ].join('');
+
+  function ensureStyle() {
+    if (document.getElementById(STYLE_ID)) return;
+    var st = document.createElement('style');
+    st.id = STYLE_ID;
+    st.textContent = CSS;
+    (document.head || document.documentElement).appendChild(st);
+  }
+
+  // DCLogic が生成した要素には目印が無いので、構造から見つけて付与する
+  function tagElements() {
+    var sec = document.getElementById('features');
+    if (!sec) return;
+    var spacer = sec.firstElementChild;
+    if (!spacer || spacer.tagName !== 'DIV') return;
+    spacer.setAttribute('data-tour-spacer', '1');
+
+    var stage = spacer.firstElementChild;
+    while (stage && stage.getAttribute('aria-hidden') === 'true') {
+      stage = stage.nextElementSibling;
+    }
+    if (!stage) return;
+    // stage は sticky コンテナ。その中に aria-hidden の装飾と grid がある
+    var stageEl = spacer.querySelector(':scope > div');
+    if (stageEl) stageEl.setAttribute('data-tour-stage', '1');
+
+    var grid = spacer.querySelector('div[style*="grid-template-columns"]');
+    if (grid) grid.setAttribute('data-tour-grid', '1');
+  }
+
+  function run() {
+    ensureStyle();
+    tagElements();
+  }
+
+  run();
+  document.addEventListener('DOMContentLoaded', run);
+  var obs = new MutationObserver(run);
+  obs.observe(document.documentElement, { childList: true, subtree: true });
+  setTimeout(function () { obs.disconnect(); }, 60000);
+})();
+</script>
 </head>
 <body>
   <div id="__bundler_thumbnail">
