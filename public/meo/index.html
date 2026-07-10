@@ -332,8 +332,11 @@
 </script>
 <script>
 // MEO LP contact form -> /api/contact (same-origin, Resend)
-// NOTE: DCLogic runtime intercepts <form> submit, so we bind the submit BUTTON's
-// click event in the capture phase instead. Verified: submit never fires; click does.
+// NOTE: DCLogic runtime recreates form/button nodes unpredictably, and native
+// form submission cannot be reliably intercepted by binding to a specific
+// node. Instead, delegate at the document level (capture phase) so the
+// listener never goes stale, no matter how many times DCLogic replaces
+// the underlying DOM nodes.
 (function () {
   var SENT = false;
 
@@ -341,23 +344,25 @@
     return document.getElementById('meoContactForm');
   }
 
-  function bind() {
+  document.addEventListener('click', function (e) {
     var form = findForm();
     if (!form) return;
-    var btn = form.querySelector('button[type=button]');
-    if (!btn || btn.dataset.meoBound) return;
-    btn.dataset.meoBound = '1';
-    btn.addEventListener('click', onClick, true); // capture phase
-  }
+    var btn = e.target && e.target.closest ? e.target.closest('button') : null;
+    if (!btn || !form.contains(btn)) return;
+    onClick(e, form, btn);
+  }, true); // capture phase, delegated, never needs rebinding
 
-  async function onClick(e) {
+  document.addEventListener('submit', function (e) {
+    var form = findForm();
+    if (!form || e.target !== form) return;
+    e.preventDefault();
+    e.stopPropagation();
+  }, true); // belt-and-braces: also block native submit if it ever fires
+
+  async function onClick(e, form, btn) {
     e.preventDefault();
     e.stopPropagation();
     if (SENT) return;
-
-    var form = findForm();
-    if (!form) return;
-    var btn = e.currentTarget;
 
     var get = function (n) {
       var el = form.querySelector('[name=' + n + ']');
@@ -439,13 +444,9 @@
         '<p style="font-size:14px;color:#475467;line-height:1.9;">資料請求を受け付けました。<br>担当者より2営業日以内にご連絡いたします。</p>' +
       '</div>';
   }
-
-  if (document.readyState !== 'loading') bind();
-  document.addEventListener('DOMContentLoaded', bind);
-  var obs = new MutationObserver(bind);
-  obs.observe(document.documentElement, { childList: true, subtree: true });
 })();
 </script>
+
 </head>
 <body>
   <div id="__bundler_thumbnail">
