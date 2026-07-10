@@ -121,6 +121,8 @@
       '#features [data-tour-grid]{',
         'grid-template-columns:1fr!important;gap:32px!important;',
       '}',
+      /* 6シーンを重ねた 520px の枠ごと非表示にする(黒い余白の正体) */
+      '#features [data-tour-visuals]{display:none!important;}',
     '}'
   ].join('');
 
@@ -151,6 +153,12 @@
 
     var grid = spacer.querySelector('div[style*="grid-template-columns"]');
     if (grid) grid.setAttribute('data-tour-grid', '1');
+
+    // 右側のビジュアル枠(6シーンを絶対配置で重ねた height:520px の div)
+    if (grid) {
+      var visuals = grid.querySelector('div[style*="height: 520px"]');
+      if (visuals) visuals.setAttribute('data-tour-visuals', '1');
+    }
   }
 
   function run() {
