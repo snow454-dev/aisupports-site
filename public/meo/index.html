@@ -173,6 +173,163 @@
   setTimeout(function () { obs.disconnect(); }, 60000);
 })();
 </script>
+<script defer>
+(function () {
+  var STYLE_ID = 'meoHeaderFixStyle';
+  var H = 64;          // ヘッダーの高さ(px)
+  var BP = 720;        // 既存CSSが header nav を隠すブレークポイント
+
+  var CSS = [
+    /* body が独立したスクロールコンテナなので sticky が不安定。fixed で確実に固定する */
+    'header[data-screen-label]{',
+      'position:fixed!important;top:0!important;left:0!important;right:0!important;',
+      'z-index:1000!important;',
+    '}',
+    /* 固定した分だけ本文を下げる */
+    'body{padding-top:' + H + 'px!important;}',
+
+    /* ハンバーガーボタン(デスクトップでは非表示) */
+    '#meoBurger{',
+      'display:none;align-items:center;justify-content:center;',
+      'width:40px;height:40px;margin-left:8px;padding:0;',
+      'background:transparent;border:1px solid #EAECF0;border-radius:10px;',
+      'cursor:pointer;flex:0 0 auto;',
+    '}',
+    '#meoBurger span{',
+      'display:block;width:18px;height:2px;background:#101828;border-radius:2px;',
+      'position:relative;transition:background .2s ease;',
+    '}',
+    '#meoBurger span::before,#meoBurger span::after{',
+      'content:"";position:absolute;left:0;width:18px;height:2px;',
+      'background:#101828;border-radius:2px;transition:transform .25s ease;',
+    '}',
+    '#meoBurger span::before{top:-6px;}',
+    '#meoBurger span::after{top:6px;}',
+    '#meoBurger[aria-expanded="true"] span{background:transparent;}',
+    '#meoBurger[aria-expanded="true"] span::before{transform:translateY(6px) rotate(45deg);}',
+    '#meoBurger[aria-expanded="true"] span::after{transform:translateY(-6px) rotate(-45deg);}',
+
+    /* 上から下へスライドするパネル */
+    '#meoDrawer{',
+      'position:fixed;top:' + H + 'px;left:0;right:0;z-index:999;',
+      'background:#fff;border-bottom:1px solid #EAECF0;',
+      'box-shadow:0 18px 40px -24px rgba(16,24,40,.35);',
+      'transform:translateY(-12px);opacity:0;pointer-events:none;',
+      'transition:transform .26s ease,opacity .2s ease;',
+      'display:none;',
+    '}',
+    '#meoDrawer.is-open{transform:translateY(0);opacity:1;pointer-events:auto;}',
+    '#meoDrawer a{',
+      'display:block;padding:16px 22px;font-size:15px;font-weight:600;',
+      'color:#101828;text-decoration:none;border-bottom:1px solid #F2F4F7;',
+    '}',
+    '#meoDrawer a:last-child{border-bottom:0;}',
+    '#meoDrawer a.is-cta{',
+      'margin:14px 22px 20px;padding:14px 18px;text-align:center;',
+      'background:#4338F0;color:#fff;border-radius:10px;border:0;',
+    '}',
+
+    '@media (max-width:' + BP + 'px){',
+      '#meoBurger{display:flex!important;}',
+      '#meoDrawer{display:block!important;}',
+      /* ヘッダー内の資料請求ボタンは幅を詰めて残す */
+      'header nav.meo-cta-only{display:flex!important;gap:0!important;}',
+      'header nav.meo-cta-only > a:not([href="#contact"]){display:none!important;}',
+      'header nav.meo-cta-only > a[href="#contact"]{',
+        'font-size:12.5px!important;padding:8px 14px!important;white-space:nowrap;',
+      '}',
+    '}'
+  ].join('');
+
+  function ensureStyle() {
+    if (document.getElementById(STYLE_ID)) return;
+    var st = document.createElement('style');
+    st.id = STYLE_ID;
+    st.textContent = CSS;
+    (document.head || document.documentElement).appendChild(st);
+  }
+
+  var LINKS = [
+    ['#about', 'MEOとは'],
+    ['#features', '機能・サポート'],
+    ['#inbound', 'インバウンド'],
+    ['#flow', '導入の流れ'],
+    ['#faq', 'FAQ']
+  ];
+
+  function build() {
+    var header = document.querySelector('header[data-screen-label]');
+    if (!header) return;
+    var nav = header.querySelector('nav');
+    if (!nav) return;
+
+    // 既存CSS `header nav {display:none}` を打ち消しつつ CTA だけ残すための目印
+    nav.classList.add('meo-cta-only');
+
+    var bar = nav.parentElement;
+    if (!bar) return;
+
+    if (!document.getElementById('meoBurger')) {
+      var btn = document.createElement('button');
+      btn.id = 'meoBurger';
+      btn.type = 'button';
+      btn.setAttribute('aria-label', 'メニューを開く');
+      btn.setAttribute('aria-expanded', 'false');
+      btn.setAttribute('aria-controls', 'meoDrawer');
+      btn.appendChild(document.createElement('span'));
+      bar.appendChild(btn);
+
+      btn.addEventListener('click', function () {
+        var open = btn.getAttribute('aria-expanded') === 'true';
+        btn.setAttribute('aria-expanded', open ? 'false' : 'true');
+        btn.setAttribute('aria-label', open ? 'メニューを開く' : 'メニューを閉じる');
+        var dr = document.getElementById('meoDrawer');
+        if (dr) dr.classList.toggle('is-open', !open);
+      });
+    }
+
+    if (!document.getElementById('meoDrawer')) {
+      var dr = document.createElement('nav');
+      dr.id = 'meoDrawer';
+      dr.setAttribute('aria-label', 'モバイルメニュー');
+      LINKS.forEach(function (l) {
+        var a = document.createElement('a');
+        a.href = l[0];
+        a.textContent = l[1];
+        dr.appendChild(a);
+      });
+      var cta = document.createElement('a');
+      cta.href = '#contact';
+      cta.className = 'is-cta';
+      cta.textContent = '資料請求';
+      dr.appendChild(cta);
+      document.body.appendChild(dr);
+
+      // 項目を選んだら閉じる
+      dr.addEventListener('click', function (e) {
+        if (e.target.tagName !== 'A') return;
+        dr.classList.remove('is-open');
+        var b = document.getElementById('meoBurger');
+        if (b) {
+          b.setAttribute('aria-expanded', 'false');
+          b.setAttribute('aria-label', 'メニューを開く');
+        }
+      });
+    }
+  }
+
+  function run() {
+    ensureStyle();
+    build();
+  }
+
+  run();
+  document.addEventListener('DOMContentLoaded', run);
+  var obs = new MutationObserver(run);
+  obs.observe(document.documentElement, { childList: true, subtree: true });
+  setTimeout(function () { obs.disconnect(); }, 60000);
+})();
+</script>
 </head>
 <body>
   <div id="__bundler_thumbnail">
