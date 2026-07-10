@@ -24,11 +24,15 @@
   var STYLE_ID = 'inboundFlipStyle';
 
   var CSS = [
+    /* #inbound 側にも文脈を作り、フリップが後続セクションに重ならないようにする */
+    '#inbound{position:relative!important;z-index:0!important;}',
     '#inboundFlip{width:100%!important;min-height:260vh!important;',
-    'position:relative!important;display:block!important;}',
+    'position:relative!important;display:block!important;',
+    'z-index:0!important;isolation:isolate!important;}',
     '#inboundFlip .flip-stage{position:sticky!important;top:12vh!important;',
     'width:100%!important;max-width:1000px!important;margin:0 auto!important;',
-    'aspect-ratio:1456/1092;perspective:1800px;display:block!important;}',
+    'aspect-ratio:1456/1092;perspective:1800px;display:block!important;',
+    'z-index:1!important;}',
     '#inboundFlip .flip-card{position:absolute!important;inset:0!important;',
     'margin:0!important;transform-origin:left center!important;',
     'transform-style:preserve-3d;border-radius:14px;overflow:hidden;',
@@ -97,6 +101,76 @@
   }
 
   requestAnimationFrame(tick);
+})();
+</script>
+<script defer>
+(function () {
+  var STYLE_ID = 'featuresMobileFixStyle';
+
+  var CSS = [
+    '@media (max-width: 900px){',
+      /* スクロール量を確保する。6シーンで割ると1シーンあたり約0.6画面分 */
+      '#features > div[data-tour-spacer]{height:360vh!important;}',
+      /* ステップリストを画面に留める。overflow は奪わない */
+      '#features > div[data-tour-spacer] > div[data-tour-stage]{',
+        'position:sticky!important;top:0!important;height:100vh!important;',
+        'overflow:visible!important;display:flex!important;',
+        'align-items:center!important;',
+      '}',
+      /* 2カラムを1カラムに */
+      '#features [data-tour-grid]{',
+        'grid-template-columns:1fr!important;gap:32px!important;',
+      '}',
+      /* 6シーンを重ねた 520px の枠ごと非表示にする(黒い余白の正体) */
+      '#features [data-tour-visuals]{display:none!important;}',
+    '}'
+  ].join('');
+
+  function ensureStyle() {
+    if (document.getElementById(STYLE_ID)) return;
+    var st = document.createElement('style');
+    st.id = STYLE_ID;
+    st.textContent = CSS;
+    (document.head || document.documentElement).appendChild(st);
+  }
+
+  // DCLogic が生成した要素には目印が無いので、構造から見つけて付与する
+  function tagElements() {
+    var sec = document.getElementById('features');
+    if (!sec) return;
+    var spacer = sec.firstElementChild;
+    if (!spacer || spacer.tagName !== 'DIV') return;
+    spacer.setAttribute('data-tour-spacer', '1');
+
+    var stage = spacer.firstElementChild;
+    while (stage && stage.getAttribute('aria-hidden') === 'true') {
+      stage = stage.nextElementSibling;
+    }
+    if (!stage) return;
+    // stage は sticky コンテナ。その中に aria-hidden の装飾と grid がある
+    var stageEl = spacer.querySelector(':scope > div');
+    if (stageEl) stageEl.setAttribute('data-tour-stage', '1');
+
+    var grid = spacer.querySelector('div[style*="grid-template-columns"]');
+    if (grid) grid.setAttribute('data-tour-grid', '1');
+
+    // 右側のビジュアル枠(6シーンを絶対配置で重ねた height:520px の div)
+    if (grid) {
+      var visuals = grid.querySelector('div[style*="height: 520px"]');
+      if (visuals) visuals.setAttribute('data-tour-visuals', '1');
+    }
+  }
+
+  function run() {
+    ensureStyle();
+    tagElements();
+  }
+
+  run();
+  document.addEventListener('DOMContentLoaded', run);
+  var obs = new MutationObserver(run);
+  obs.observe(document.documentElement, { childList: true, subtree: true });
+  setTimeout(function () { obs.disconnect(); }, 60000);
 })();
 </script>
 </head>
