@@ -331,12 +331,11 @@
 })();
 </script>
 <script>
-// MEO LP contact form -> /api/contact (same-origin, Resend)
-// NOTE: DCLogic runtime recreates form/button nodes unpredictably, and native
-// form submission cannot be reliably intercepted by binding to a specific
-// node. Instead, delegate at the document level (capture phase) so the
-// listener never goes stale, no matter how many times DCLogic replaces
-// the underlying DOM nodes.
+// MEO LP contact form -> Formspree (same endpoint as aisupports.cc本体, proven working)
+// NOTE: /api/contact does not exist on this deployment because next.config.ts
+// has output: "export" (static export), which does not support API routes.
+// The main site's own contact form (app/page.tsx) already submits directly to
+// Formspree for exactly this reason. This form does the same.
 (function () {
   var SENT = false;
 
@@ -396,27 +395,36 @@
     btn.disabled = true;
     btn.textContent = '送信中...';
 
-    var payload = {
-      company: company,
-      name: name,
-      email: email,
-      message: '【MEOローカル集客 資料請求】\n業種: ' + (industry || '未選択') + '\n\n' + message
-    };
+    var formData = new FormData();
+    formData.append('company', company);
+    formData.append('name', name);
+    formData.append('email', email);
+    formData.append('industry', industry || '未選択');
+    formData.append('message', '【MEOローカル集客 資料請求】\n業種: ' + (industry || '未選択') + '\n\n' + message);
+    formData.append('_subject', 'MEO資料請求: ' + company);
 
     try {
-      var res = await fetch('/api/contact', {
+      var res = await fetch('https://formspree.io/f/mqegppnz', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
+        headers: { 'Accept': 'application/json' },
+        body: formData
       });
-      var data = await res.json().catch(function () { return {}; });
-      if (!res.ok) throw new Error(data.error || '送信に失敗しました。');
-      showThanks(form);
+
+      if (res.ok) {
+        showThanks(form);
+      } else {
+        var msg = '送信に失敗しました。時間をおいて再度お試しください。';
+        try {
+          var data = await res.json();
+          if (data && data.error) msg = data.error;
+        } catch (parseErr) { /* ignore */ }
+        throw new Error(msg);
+      }
     } catch (err) {
       SENT = false;
       btn.disabled = false;
       btn.textContent = original;
-      showError(form, (err && err.message) || '送信に失敗しました。時間をおいて再度お試しください。');
+      showError(form, (err && err.message) || 'ネットワークエラーが発生しました。接続を確認して再度お試しください。');
     }
   }
 
@@ -446,6 +454,7 @@
   }
 })();
 </script>
+
 
 </head>
 <body>
